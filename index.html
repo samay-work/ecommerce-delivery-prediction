@@ -1,0 +1,124 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>E-commerce Delivery Prediction</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f3f6fb; margin: 0; padding: 30px; }
+    .container { max-width: 650px; margin: auto; background: white; padding: 30px; border-radius: 14px; box-shadow: 0 4px 20px #0001; }
+    h1 { text-align: center; color: #243b67; }
+    p { text-align: center; color: #64748b; }
+    label { display: block; margin-top: 16px; font-weight: bold; }
+    input, select { width: 100%; box-sizing: border-box; padding: 11px; margin-top: 6px; border: 1px solid #cbd5e1; border-radius: 7px; }
+    button { width: 100%; margin-top: 25px; padding: 14px; border: none; border-radius: 8px; background: #2563eb; color: white; font-size: 16px; cursor: pointer; }
+    button:disabled { opacity: .6; cursor: wait; }
+    #result { margin-top: 20px; padding: 16px; border-radius: 8px; text-align: center; font-weight: bold; }
+    .success { background: #e0f2fe; color: #075985; }
+    .error { background: #fee2e2; color: #991b1b; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>E-commerce Delivery Prediction</h1>
+    <p>Enter order details to predict the delivery class.</p>
+
+    <form id="predictionForm">
+      <label>Warehouse Block</label>
+      <select name="Warehouse_block">
+        <option>A</option><option>B</option><option>C</option>
+        <option>D</option><option>F</option>
+      </select>
+
+      <label>Mode of Shipment</label>
+      <select name="Mode_of_Shipment">
+        <option>Flight</option><option>Road</option><option>Ship</option>
+      </select>
+
+      <label>Customer Care Calls</label>
+      <input type="number" name="Customer_care_calls" min="0" value="4" required>
+
+      <label>Customer Rating</label>
+      <input type="number" name="Customer_rating" min="1" max="5" value="3" required>
+
+      <label>Product Cost</label>
+      <input type="number" name="Cost_of_the_Product" min="0" value="200" required>
+
+      <label>Prior Purchases</label>
+      <input type="number" name="Prior_purchases" min="0" value="3" required>
+
+      <label>Product Importance</label>
+      <select name="Product_importance">
+        <option>low</option><option>medium</option><option>high</option>
+      </select>
+
+      <label>Gender</label>
+      <select name="Gender">
+        <option>F</option><option>M</option>
+      </select>
+
+      <label>Discount Offered (%)</label>
+      <input type="number" name="Discount_offered" min="0" max="100" value="10" required>
+
+      <label>Weight (grams)</label>
+      <input type="number" name="Weight_in_gms" min="1" value="2500" required>
+
+      <button type="submit" id="submitBtn">Predict Delivery Class</button>
+    </form>
+
+    <div id="result" hidden role="status" aria-live="polite"></div>
+  </div>
+
+  <script>
+    const form = document.getElementById("predictionForm");
+    const result = document.getElementById("result");
+    const button = document.getElementById("submitBtn");
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      const data = Object.fromEntries(new FormData(form).entries());
+
+      const numericFields = [
+        "Customer_care_calls", "Customer_rating",
+        "Cost_of_the_Product", "Prior_purchases",
+        "Discount_offered", "Weight_in_gms"
+      ];
+
+      numericFields.forEach(field => {
+        data[field] = Number(data[field]);
+      });
+
+      button.disabled = true;
+      result.hidden = false;
+      result.className = "";
+      result.textContent = "Predicting...";
+
+      try {
+        const response = await fetch("/api/predict", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data)
+        });
+
+        const output = await response.json();
+
+        if (!response.ok) {
+          throw new Error(output.error || "Prediction failed");
+        }
+
+        result.className = "success";
+        result.textContent =
+          `Predicted Class: ${output.prediction} | Confidence: ${output.confidence}%`;
+
+      } catch (error) {
+        result.className = "error";
+        result.textContent = "Error: " + error.message;
+      } finally {
+        button.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
