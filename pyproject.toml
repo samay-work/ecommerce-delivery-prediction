@@ -1,2 +1,13 @@
+[project]
+name = "ecommerce-delivery-prediction"
+version = "1.0.0"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "pandas",
+    "numpy",
+    "Scikit-learn version==1.9.0",
+    "joblib"
+]
+
 [tool.vercel]
 entrypoint = "api.predict:handler"
